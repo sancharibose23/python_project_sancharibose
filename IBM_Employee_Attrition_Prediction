@@ -1,0 +1,166 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+import random as rd
+import matplotlib as mpl
+from scipy import stats
+from sklearn import linear_model
+import statsmodels.api as sm
+import warnings
+from itertools import product
+from datetime import datetime
+from statsmodels.tsa.seasonal import seasonal_decompose
+from statsmodels.tsa.arima_model import ARIMA
+from statsmodels.tsa.statespace.sarimax import SARIMAX
+from pandas.plotting import autocorrelation_plot
+from statsmodels.tsa.stattools import adfuller,acf,pacf,arma_order_select_ic
+import statsmodels.formula.api as smf
+import statsmodels.tsa.api as smt
+import scipy.stats as scs
+from matplotlib.pylab import rcParams
+import warnings
+warnings.filterwarnings("ignore")
+
+dataframe=pd.read_csv(r"C:\Users\boses\OneDrive\Desktop\Data Science using Python\IBM Attrition Data.csv")
+
+dataframe.head()
+
+names = dataframe.columns.values 
+print(names)
+
+# histogram for age
+plt.figure(figsize=(10,8))
+dataframe['Age'].hist(bins=70)
+plt.title("Age distribution of Employees")
+plt.xlabel("Age")
+plt.ylabel("# of Employees")
+plt.show()
+
+# explore data for Attrition by Age
+plt.figure(figsize=(14,10))
+plt.scatter(dataframe.Attrition,dataframe.Age, alpha=.55)
+plt.title("Attrition by Age ")
+plt.ylabel("Age")
+plt.grid(b=True, which='major',axis='y')
+plt.show()
+
+# explore data for Left employees breakdown
+plt.figure(figsize=(8,6))
+dataframe.Attrition.value_counts().plot(kind='barh',color='blue',alpha=.65)
+plt.title("Attrition breakdown ")
+plt.show()
+
+# explore data for Education Field distribution
+plt.figure(figsize=(10,8))
+dataframe.EducationField.value_counts().plot(kind='barh',color='g',alpha=.65)
+plt.title("Education Field Distribution")
+plt.show()
+
+# explore data for Marital Status
+plt.figure(figsize=(8,6))
+dataframe.MaritalStatus.value_counts().plot(kind='bar',alpha=.5)
+plt.show()
+
+dataframe.describe()
+
+dataframe.info()
+
+dataframe.columns
+
+dataframe.std()
+
+dataframe['Attrition'].value_counts()
+
+dataframe['Attrition'].dtypes
+
+dataframe['Attrition'].replace('Yes',1, inplace=True)
+dataframe['Attrition'].replace('No',0, inplace=True)
+
+dataframe.head(10)
+
+# building up a logistic regression model
+X = dataframe.drop(['Attrition'],axis=1)
+X.head()
+Y = dataframe['Attrition']
+Y.head()
+
+dataframe['EducationField'].replace('Life Sciences',1, inplace=True)
+dataframe['EducationField'].replace('Medical',2, inplace=True)
+dataframe['EducationField'].replace('Marketing', 3, inplace=True)
+dataframe['EducationField'].replace('Other',4, inplace=True)
+dataframe['EducationField'].replace('Technical Degree',5, inplace=True)
+dataframe['EducationField'].replace('Human Resources', 6, inplace=True)
+
+dataframe['EducationField'].value_counts()
+
+dataframe['Department'].value_counts()
+
+dataframe['Department'].replace('Research & Development',1, inplace=True)
+dataframe['Department'].replace('Sales',2, inplace=True)
+dataframe['Department'].replace('Human Resources', 3, inplace=True)
+
+dataframe['Department'].value_counts()
+
+dataframe['MaritalStatus'].value_counts()
+
+dataframe['MaritalStatus'].replace('Married',1, inplace=True)
+dataframe['MaritalStatus'].replace('Single',2, inplace=True)
+dataframe['MaritalStatus'].replace('Divorced',3, inplace=True)
+
+dataframe['MaritalStatus'].value_counts()
+
+x=dataframe.select_dtypes(include=['int64'])
+x.dtypes
+
+x.columns
+
+y=dataframe['Attrition']
+
+y.head()
+
+from patsy import dmatrices
+
+y, x = dmatrices('Attrition ~ Age + Department + \
+                  DistanceFromHome + Education + EducationField + YearsAtCompany',
+                  dataframe, return_type="dataframe")
+print (x.columns)
+
+y = np.ravel(y)
+
+from sklearn.linear_model import LogisticRegression
+
+model = LogisticRegression()
+model = model.fit(x, y)
+
+# check the accuracy on the training set
+model.score(x, y)
+
+y.mean()
+
+from sklearn import metrics
+
+from sklearn.model_selection import train_test_split
+
+x_train,x_test,y_train,y_test=train_test_split(x,y, test_size=0.3, random_state=0)
+model2=LogisticRegression()
+model2.fit(x_train, y_train)
+
+predicted= model2.predict(x_test)
+print (predicted)
+
+probs = model2.predict_proba(x_test)
+print(probs)
+
+print (metrics.accuracy_score(y_test, predicted))
+print (metrics.roc_auc_score(y_test, probs[:, 1]))
+
+print (metrics.confusion_matrix(y_test, predicted))
+print (metrics.classification_report(y_test, predicted))
+
+print (x_train)
+
+#add random values to KK according to the parameters mentioned above to check the proabily of attrition of the employee
+kk=[[1.0, 23.0, 1.0, 500.0, 3.0, 24.0, 1.0]]
+print(model.predict_proba(kk))
+
